@@ -56,6 +56,7 @@ dependencies {
 
     // DI
     implementation ("com.google.dagger:hilt-android:2.48")
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
     kapt ("com.google.dagger:hilt-compiler:2.48")
 
     // ML
