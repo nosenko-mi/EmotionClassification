@@ -56,6 +56,7 @@ dependencies {
 
     // DI
     implementation ("com.google.dagger:hilt-android:2.48")
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
     kapt ("com.google.dagger:hilt-compiler:2.48")
 
@@ -67,6 +68,10 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-task-audio:0.4.4")
     // Import the GPU delegate plugin Library for GPU inference
     implementation("org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.4")
+
+    // TarsosDSP
+    implementation("be.tarsos.dsp:core:2.5")
+    implementation("be.tarsos.dsp:jvm:2.5")
 
     // default
     implementation("androidx.core:core-ktx:1.9.0")

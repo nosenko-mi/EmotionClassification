@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
 import com.nosenkomi.emotionclassification.classifier.Classifier
+import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -138,6 +139,10 @@ class YamnetClassifier(
         val loadedValues = recorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
         if (loadedValues > 0) {
             Log.d(TAG, "Processed audio data. Bytes read: $loadedValues, Data: ${newData.size}")
+            val extractor = JlibrosaExtractor()
+
+            val audioFeatures = extractor.extractFeatures(newData)
+            Log.d(TAG, "Processed audio data. ${audioFeatures.features}")
             // Processed audio data. Bytes read: 31200, Data: 31200
 //            processAudioData(newData, loadedValues)
         }
