@@ -1,7 +1,9 @@
 package com.nosenkomi.emotionclassification
 
 import android.app.Application
+import com.nosenkomi.emotionclassification.classifier.LSTMClassifier
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
+import com.nosenkomi.emotionclassification.record.CustomClassifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
 import com.nosenkomi.emotionclassification.record.YamnetClassifier
 import dagger.Module
@@ -29,7 +31,19 @@ object AppModule{
 
     @Provides
     @Singleton
-    fun provideMainActivityViewModel(recorder: AudioRecorder, classifier: YamnetClassifier): MainActivityViewModel{
+    fun provideAudioClassifier(application: Application): CustomClassifier {
+        return CustomClassifier(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLSTMClassifier(application: Application): LSTMClassifier {
+        return LSTMClassifier(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMainActivityViewModel(recorder: AudioRecorder, classifier: LSTMClassifier): MainActivityViewModel{
         return MainActivityViewModel(recorder, classifier)
     }
 }
