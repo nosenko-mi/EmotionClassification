@@ -58,12 +58,15 @@ dependencies {
     implementation ("com.google.dagger:hilt-android:2.48")
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
     kapt ("com.google.dagger:hilt-compiler:2.48")
 
     // ML
     implementation ("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation ("org.tensorflow:tensorflow-lite-metadata:0.4.4")
     implementation ("org.tensorflow:tensorflow-lite-gpu:2.3.0")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
     // Import the Audio Task Library dependency (NNAPI is included)
     implementation("org.tensorflow:tensorflow-lite-task-audio:0.4.4")
     // Import the GPU delegate plugin Library for GPU inference
