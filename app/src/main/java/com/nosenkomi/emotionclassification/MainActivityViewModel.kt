@@ -4,20 +4,21 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
+import com.nosenkomi.emotionclassification.classifier.LSTMClassifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
-import com.nosenkomi.emotionclassification.record.YamnetClassifier
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import org.tensorflow.lite.support.label.Category
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val recorder: AudioRecorder,
-    private val classifier: YamnetClassifier
+    private val classifier: LSTMClassifier
 ) : ViewModel() {
 
     private val TAG = this::class.simpleName
@@ -39,6 +40,8 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun startClassification() {
+        if (isRecording.value) return
+        _isRecording.update { true }
         classifier.startAudioClassification()
             .onEach { result ->
                 when (result) {
@@ -58,6 +61,7 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun stopClassification() {
+        _isRecording.update { false }
         classifier.stop()
     }
 
