@@ -13,13 +13,17 @@ import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import com.nosenkomi.emotionclassification.ml.LstmI64x64P35kOae100F068V2
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.isActive
+import kotlinx.coroutines.isActive
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.lang.reflect.Array
 
 class LSTMClassifier(
     private val context: Context,
@@ -28,6 +32,8 @@ class LSTMClassifier(
     private var audioRecorder: AudioRecord? = null
     private lateinit var model: LstmI64x64P35kOae100F068V2
     private lateinit var mfcc: TensorBuffer
+    private val interval = 2000L // ms
+    private val featureExtractor = JlibrosaExtractor()
 
     init {
         initialize()
@@ -40,46 +46,6 @@ class LSTMClassifier(
         mfcc = TensorBuffer.createFixedSize(intArrayOf(1, 64, 64), DataType.FLOAT32)
     }
 
-    private fun classifyAudio(): Flow<List<Category>> = flow {
-        Log.d(TAG, "classifyAudio: start")
-        if (audioRecorder!!.state == AudioRecord.STATE_UNINITIALIZED) {
-            Log.d(TAG, "classifyAudio:  emit(emptyList())")
-            emit(emptyList())
-            return@flow
-        }
-
-        Log.d(TAG, "classifyAudio:  create byte array")
-        val newData = FloatArray(audioRecorder!!.channelCount * audioRecorder!!.bufferSizeInFrames)
-
-        Log.d(TAG, "classifyAudio:  recorder buffer.sizeInFrames=${audioRecorder!!.bufferSizeInFrames}")
-        Log.d(TAG, "classifyAudio:  newData.size=${newData.size}")
-        Log.d(TAG, "classifyAudio:  read from recorder")
-        val loadedValues = audioRecorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
-        Log.d(TAG, "classifyAudio: Bytes read: $loadedValues")
-
-        if (loadedValues > 0) {
-            Log.d(TAG, "Process audio data. Bytes read: $loadedValues, Data: ${newData.toList()}")
-            val extractor = JlibrosaExtractor()
-//            val floatArray = FloatArray(loadedValues.first.remaining() / Float.SIZE_BYTES) // Calculate size based on bytes
-
-            val processedData = extractor.extractMFCCtoBuffer(newData, 44100)
-            Log.d(TAG, "Process audio data. Bytes read: $loadedValues, MFCC.flatSize: ${mfcc.flatSize}")
-            mfcc.loadBuffer(processedData)
-
-            val inferenceTime = SystemClock.uptimeMillis()
-            val outputs = model.process(mfcc)
-            val probability = outputs.probabilityAsCategoryList
-            Log.d(TAG, "Probability: ${probability}")
-            emit(probability)
-        } else{
-            emit(emptyList())
-            return@flow
-        }
-
-
-    }.flowOn(Dispatchers.Default) // Use a background thread for inference, if necessary
-
-
     fun startAudioClassification(): Flow<ClassificationResult<List<Category>>> {
         createRecorder()
         model = LstmI64x64P35kOae100F068V2.newInstance(context)
@@ -91,21 +57,34 @@ class LSTMClassifier(
                 releaseRecorder()
                 return@flow
             }
+            while (currentCoroutineContext().isActive) {
+                delay(interval)   // Delay before to spare 1 classification
 
-//            val lengthInMilliSeconds = ((classifier.requiredInputBufferSize * 1.0f) /
-//                    classifier.requiredTensorAudioFormat.sampleRate) * 1000
-
-            val interval = 2000L
-            Log.d(TAG, "interval: $interval (ms)")
-            while (true) {
-                delay(interval)
-                Log.d(TAG, "classification tic")
-                classifyAudio().collect { categories ->
-                    emit(ClassificationResult.Success<List<Category>>(categories))
+                val newValues: FloatArray = readFromRecorder()
+                if (newValues.isEmpty()){
+                    emit(ClassificationResult.Error<List<Category>>("could not read from recorder"))
+                    releaseRecorder()
+                    return@flow
                 }
-                // Delay for the specified interval before the next classification
+
+                val processedData = featureExtractor.extractMFCCtoBuffer(newValues, 44100)
+                mfcc.loadBuffer(processedData)
+
+                val inferenceTime = SystemClock.uptimeMillis()
+                Log.i(TAG, "inference time: $inferenceTime")
+                val outputs = model.process(mfcc)
+                val probability = outputs.probabilityAsCategoryList
+                emit(ClassificationResult.Success<List<Category>>(probability))
+
             }
         }.flowOn(Dispatchers.IO) // Use a background thread for recording and classification, if necessary
+    }
+
+    private fun readFromRecorder(): FloatArray{
+        val newData = FloatArray(audioRecorder!!.channelCount * audioRecorder!!.bufferSizeInFrames)
+        val loadedValues = audioRecorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
+        if (loadedValues < 0) return floatArrayOf()
+        return newData
     }
 
     private fun createRecorder(){
