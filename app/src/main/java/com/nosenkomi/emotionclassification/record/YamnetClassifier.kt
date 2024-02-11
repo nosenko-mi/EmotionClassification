@@ -109,7 +109,7 @@ class YamnetClassifier(
                     classifier.requiredTensorAudioFormat.sampleRate) * 1000
 
 //            val interval = (lengthInMilliSeconds * (1 - overlap)).toLong()
-            val interval = 3000L
+            val interval = 2000L
             Log.d(TAG, "interval: $interval (ms)")
             while (true) {
                 delay(interval)
@@ -142,6 +142,7 @@ class YamnetClassifier(
             val extractor = JlibrosaExtractor()
 
             val audioFeatures = extractor.extractFeatures(newData)
+            extractor.extractMFCC(newData, 22050)
             Log.d(TAG, "Processed audio data. ${audioFeatures.features}")
             // Processed audio data. Bytes read: 31200, Data: 31200
 //            processAudioData(newData, loadedValues)
