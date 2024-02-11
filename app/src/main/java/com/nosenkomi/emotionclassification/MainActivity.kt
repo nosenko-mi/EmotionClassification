@@ -1,6 +1,8 @@
 package com.nosenkomi.emotionclassification
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -38,22 +40,26 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import com.jlibrosa.audio.JLibrosa
 import com.nosenkomi.emotionclassification.classifier.AudioClassificationListener
 import com.nosenkomi.emotionclassification.ui.theme.EmotionClassificationTheme
+import com.nosenkomi.emotionclassification.util.WAVReader
 import dagger.hilt.android.AndroidEntryPoint
 import org.tensorflow.lite.support.label.Category
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import kotlin.random.Random
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
 
-//    private lateinit var yamnetClassifier: YamnetClassifier
-
+    //    private lateinit var yamnetClassifier: YamnetClassifier
     private val audioClassificationListener = object : AudioClassificationListener {
         override fun onError(error: String) {
 //            requireActivity().runOnUiThread {
@@ -73,6 +79,54 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun getMelSpectrogram() {
+//        val audioFile = R.raw.f_ans001aes
+
+        val jlibrosa = JLibrosa()
+
+//        val audioData = jlibrosa.loadAndRead()
+    }
+
+    fun assetFilePath(context: Context, assetName: String): String {
+//        val file = File(context.filesDir, assetName)
+//        Log.d("mainactivity", "file $file")
+//        Log.d("mainactivity", "exists ${file.exists()}")
+//        Log.d("mainactivity", "length ${file.length()}")
+//
+//        if (file.exists() && file.length() > 0) {
+//            return file.absolutePath
+//        }
+//        return ""
+        val assets = context.assets
+        val inputStream: InputStream = assets.open(assetName)
+
+        // Create a temporary file to store the asset
+        val tempFile = File(context.filesDir, assetName)
+        tempFile.createNewFile()
+
+        // Copy the asset to the temporary file
+        val outputStream = FileOutputStream(tempFile)
+        inputStream.copyTo(outputStream)
+
+        inputStream.close()
+        outputStream.close()
+
+        Log.d("mainactivity", "file path: ${tempFile.absolutePath}")
+        val jlibrosa = JLibrosa()
+
+        try {
+            val data = jlibrosa.loadAndRead(tempFile.absolutePath, 22050, 2)
+            Log.d("mainactivity", "file path: ${data.size}")
+        } catch (e: Exception) {
+            Log.e("mainactivity", "cannot read file: ${e.printStackTrace()}")
+        }
+
+        return tempFile.absolutePath
+    }
+
+    fun readWav(context: Context, assetName: String) {
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ActivityCompat.requestPermissions(
@@ -80,6 +134,11 @@ class MainActivity : ComponentActivity() {
             arrayOf(android.Manifest.permission.RECORD_AUDIO),
             0
         )
+
+        val reader = WAVReader(applicationContext)
+        reader.readAsset("f_ans001aes.wav")
+        val data = reader.readAudioFile("f_ans001aes.wav")
+
 //        yamnetClassifier = YamnetClassifier(
 //            this.applicationContext,
 ////            audioClassificationListener
@@ -186,8 +245,8 @@ fun Waveform(
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
-        val canvasCenterY: Float = canvasHeight/2
-        val canvasCenterX: Float = canvasWidth/2
+        val canvasCenterY: Float = canvasHeight / 2
+        val canvasCenterX: Float = canvasWidth / 2
 
         val count: Int = (canvasWidth / (barWidth + gapWidth)).toInt().coerceAtMost(maxLines)
 
@@ -195,24 +254,23 @@ fun Waveform(
         var startOffset: Float = (canvasWidth - animatedVolumeWidth) / 2
 
 
-
         val barMinHeight = barWidth
         val barMaxHeight = canvasHeight / 2f / heightDivider
         var volume = barMinHeight
-        repeat(count){
-            volume = Random.nextInt(barMinHeight.toInt(), (canvasHeight/2).toInt()).toFloat()
-            if (startOffset < canvasCenterX){
+        repeat(count) {
+            volume = Random.nextInt(barMinHeight.toInt(), (canvasHeight / 2).toInt()).toFloat()
+            if (startOffset < canvasCenterX) {
                 drawLine(
-                    start = Offset(x = startOffset + dx, y = canvasCenterY - volume/2),
-                    end = Offset(x = startOffset  + dx, y = canvasCenterY + volume/2),
+                    start = Offset(x = startOffset + dx, y = canvasCenterY - volume / 2),
+                    end = Offset(x = startOffset + dx, y = canvasCenterY + volume / 2),
                     color = activeColor,
                     strokeWidth = barWidth,
                     cap = StrokeCap.Round,
                 )
             } else {
                 drawLine(
-                    start = Offset(x = startOffset, y = canvasCenterY - barMinHeight/2),
-                    end = Offset(x = startOffset, y = canvasCenterY + barMinHeight/2),
+                    start = Offset(x = startOffset, y = canvasCenterY - barMinHeight / 2),
+                    end = Offset(x = startOffset, y = canvasCenterY + barMinHeight / 2),
                     color = inactiveColor,
                     strokeWidth = barWidth,
                     cap = StrokeCap.Round,
@@ -238,5 +296,5 @@ fun CategoryItem(
 
 fun normalize(value: Float, min: Float, max: Float): Float {
 //    zi = (xi – min(x)) / (max(x) – min(x))
-    return (value - min) / (max-min)
+    return (value - min) / (max - min)
 }
