@@ -46,7 +46,7 @@ class LSTMClassifier(
         mfcc = TensorBuffer.createFixedSize(intArrayOf(1, 64, 64), DataType.FLOAT32)
     }
 
-    fun startAudioClassification(): Flow<ClassificationResult<List<Category>>> {
+    override fun start(): Flow<ClassificationResult<List<Category>>> {
         createRecorder()
         model = LstmI64x64P35kOae100F068V2.newInstance(context)
         audioRecorder?.startRecording()
@@ -112,20 +112,6 @@ class LSTMClassifier(
 
     private fun stopAudioClassification() {
         model.close()
-    }
-
-
-    override fun start(): List<Category> {
-        createRecorder()
-
-        if (audioRecorder == null || audioRecorder!!.state == AudioRecord.STATE_UNINITIALIZED){
-            Log.e(TAG, "Cannot start classification: recorder error")
-            releaseRecorder()
-            return emptyList()
-        }
-
-        startAudioClassification()
-        return emptyList()
     }
 
     override fun stop() {

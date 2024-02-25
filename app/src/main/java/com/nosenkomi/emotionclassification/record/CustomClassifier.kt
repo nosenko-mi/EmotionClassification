@@ -79,7 +79,7 @@ class CustomClassifier(
         }
     }
 
-    fun startAudioClassification(): Flow<ClassificationResult<List<Category>>> {
+    override fun start(): Flow<ClassificationResult<List<Category>>> {
         recorder = classifier.createAudioRecord()
         return flow {
             if (recorder?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
@@ -148,12 +148,6 @@ class CustomClassifier(
     private fun stopAudioClassification() {
         recorder?.stop()
         recorder?.release() // Release the AudioRecord resources
-    }
-
-
-    override fun start(): List<Category> {
-        startAudioClassification()
-        return emptyList()
     }
 
     override fun stop() {

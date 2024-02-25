@@ -43,7 +43,7 @@ class MainActivityViewModel @Inject constructor(
     fun startClassification() {
         if (isRecording.value) return
         _isRecording.update { true }
-        classifier.startAudioClassification()
+        classifier.start()
             .onEach { result ->
                 when (result) {
                     is ClassificationResult.Error -> {
