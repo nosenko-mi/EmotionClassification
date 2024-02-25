@@ -53,6 +53,7 @@ class MainActivityViewModel @Inject constructor(
 
                     is ClassificationResult.Success -> {
                         _categories.value = result.data.orEmpty()
+                        filterCategories()
                         Log.d(TAG, categories.value.toString())
 
                     }
@@ -68,6 +69,11 @@ class MainActivityViewModel @Inject constructor(
         _categories.update { emptyList() }
         viewModelScope.cancel()
         classifier.stop()
+    }
+
+    private fun filterCategories(){
+        val filtered = _categories.value.maxBy { it.score }
+        _categories.update { listOf(filtered) }
     }
 
     private fun processAudioInput() {
