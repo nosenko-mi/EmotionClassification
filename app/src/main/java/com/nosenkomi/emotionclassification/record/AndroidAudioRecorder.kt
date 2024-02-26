@@ -8,8 +8,6 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.nosenkomi.emotionclassification.classifier.LSTMClassifier
-import kotlin.concurrent.thread
 
 class AndroidAudioRecorder(
     private val context: Context,
@@ -40,9 +38,6 @@ class AndroidAudioRecorder(
         }
         isRecordingAudio = true
         recorder!!.startRecording()
-        val recodingThread = thread {
-            processAudioInput()
-        }
     }
 
     override fun stop() {
@@ -67,16 +62,6 @@ class AndroidAudioRecorder(
             return AudioRecord.STATE_UNINITIALIZED
         } else {
             return recorder!!.state
-        }
-    }
-
-    private fun processAudioInput(){
-        while (isRecordingAudio) {
-            val bytesRead = recorder!!.read(data, 0, data.size)
-            if (bytesRead <= 0) {
-                break
-            }
-            Log.d(TAG, "First byte: ${data.first()}")
         }
     }
 
