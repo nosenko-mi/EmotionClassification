@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import com.nosenkomi.emotionclassification.ml.LstmI64x64P35kOae100F068V2
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
+import com.nosenkomi.emotionclassification.record.AudioRecorder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -29,10 +30,10 @@ class LSTMClassifier(
     private val context: Context,
 ): Classifier {
     private val TAG = this::class.simpleName
-    private var audioRecorder: AudioRecord? = null
     private lateinit var model: LstmI64x64P35kOae100F068V2
     private lateinit var mfcc: TensorBuffer
     private val interval = 2000L // ms
+    private var audioRecorder: AudioRecorder = AndroidAudioRecorder(context, intervalSeconds = 2)
     private val featureExtractor = JlibrosaExtractor()
 
     init {
@@ -47,23 +48,27 @@ class LSTMClassifier(
     }
 
     override fun start(): Flow<ClassificationResult<List<Category>>> {
-        createRecorder()
+//        createRecorder()
         model = LstmI64x64P35kOae100F068V2.newInstance(context)
-        audioRecorder?.startRecording()
+        audioRecorder.start()
         return flow {
-            Log.d(TAG, "recorder state: ${audioRecorder!!.state}")
-            if (audioRecorder == null || audioRecorder!!.state == AudioRecord.STATE_UNINITIALIZED) {
+            Log.d(TAG, "recorder state: ${audioRecorder!!.getState()}")
+            if (audioRecorder == null || audioRecorder!!.getState() == AudioRecord.STATE_UNINITIALIZED) {
                 emit(ClassificationResult.Error<List<Category>>("recorder is not initialized"))
-                releaseRecorder()
+                audioRecorder.stop()
+//                releaseRecorder()
                 return@flow
             }
             while (currentCoroutineContext().isActive) {
                 delay(interval)   // Delay before to spare 1 classification
 
-                val newValues: FloatArray = readFromRecorder()
+//                val newValues: FloatArray = readFromRecorder()
+                val newValues: FloatArray = audioRecorder.readData()
+
                 if (newValues.isEmpty()){
                     emit(ClassificationResult.Error<List<Category>>("could not read from recorder"))
-                    releaseRecorder()
+                    audioRecorder.stop()
+//                    releaseRecorder()
                     return@flow
                 }
 
@@ -80,35 +85,35 @@ class LSTMClassifier(
         }.flowOn(Dispatchers.IO) // Use a background thread for recording and classification, if necessary
     }
 
-    private fun readFromRecorder(): FloatArray{
-        val newData = FloatArray(audioRecorder!!.channelCount * audioRecorder!!.bufferSizeInFrames)
-        val loadedValues = audioRecorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
-        if (loadedValues < 0) return floatArrayOf()
-        return newData
-    }
-
-    private fun createRecorder(){
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.e(TAG, "Could not create recorder. Permissions denied.")
-            // TODO: Consider calling ActivityCompat#requestPermissions
-            return
-        }
-//        val bufferSize = mfcc.flatSize * Float.SIZE_BYTES
-        val bufferSize = 2 * 2 * RECORDER_SAMPLE_RATE // 2 sec * 2 (compensate for mono) * sample rate
-        audioRecorder = AudioRecord(RAW_AUDIO_SOURCE, RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, bufferSize)
-    }
-
-    private fun releaseRecorder(){
-        audioRecorder?.let {
-            it.stop()
-            it.release() // !set to null after release
-        }
-        audioRecorder = null
-    }
+//    private fun readFromRecorder(): FloatArray{
+//        val newData = FloatArray(audioRecorder!!.channelCount * audioRecorder!!.bufferSizeInFrames)
+//        val loadedValues = audioRecorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
+//        if (loadedValues < 0) return floatArrayOf()
+//        return newData
+//    }
+//
+//    private fun createRecorder(){
+//        if (ActivityCompat.checkSelfPermission(
+//                context,
+//                Manifest.permission.RECORD_AUDIO
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            Log.e(TAG, "Could not create recorder. Permissions denied.")
+//            // TODO: Consider calling ActivityCompat#requestPermissions
+//            return
+//        }
+////        val bufferSize = mfcc.flatSize * Float.SIZE_BYTES
+//        val bufferSize = 2 * 2 * RECORDER_SAMPLE_RATE // 2 sec * 2 (compensate for mono) * sample rate
+//        audioRecorder = AudioRecord(RAW_AUDIO_SOURCE, RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, bufferSize)
+//    }
+//
+//    private fun releaseRecorder(){
+//        audioRecorder?.let {
+//            it.stop()
+//            it.release() // !set to null after release
+//        }
+//        audioRecorder = null
+//    }
 
     private fun stopAudioClassification() {
         model.close()
@@ -116,7 +121,8 @@ class LSTMClassifier(
 
     override fun stop() {
         stopAudioClassification()
-        releaseRecorder()
+        audioRecorder.stop()
+//        releaseRecorder()
     }
 
     companion object {
