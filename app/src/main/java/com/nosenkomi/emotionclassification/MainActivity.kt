@@ -1,10 +1,13 @@
 package com.nosenkomi.emotionclassification
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -39,9 +42,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.jlibrosa.audio.JLibrosa
 import com.nosenkomi.emotionclassification.classifier.AudioClassificationListener
 import com.nosenkomi.emotionclassification.ui.theme.EmotionClassificationTheme
@@ -58,6 +63,22 @@ import kotlin.random.Random
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
+
+    private val permissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission is granted. Continue the action or workflow in your
+                // app.
+            } else {
+                // Explain to the user that the feature is unavailable because the
+                // feature requires a permission that the user has denied. At the
+                // same time, respect the user's decision. Don't link to system
+                // settings in an effort to convince the user to change their
+                // decision.
+            }
+        }
 
     //    private lateinit var yamnetClassifier: YamnetClassifier
     private val audioClassificationListener = object : AudioClassificationListener {
@@ -144,7 +165,7 @@ class MainActivity : ComponentActivity() {
 ////            audioClassificationListener
 //        )
         setContent {
-
+            val context = LocalContext.current
             EmotionClassificationTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -191,7 +212,19 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(32.dp))
                             Row {
                                 Button(
-                                    onClick = { viewModel.startClassification() }) {
+                                    onClick = {
+                                        when (PackageManager.PERMISSION_GRANTED) {
+                                            ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.RECORD_AUDIO
+                                            ) -> {
+                                                viewModel.startClassification()
+                                            }
+                                            else -> {
+                                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                            }
+                                        }
+                                    }) {
                                     Text(text = "Start")
                                 }
                                 Spacer(Modifier.width(16.dp))
