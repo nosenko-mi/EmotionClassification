@@ -86,7 +86,6 @@ class AndroidAudioRecorder(
                 Manifest.permission.RECORD_AUDIO
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling ActivityCompat#requestPermissions
             Log.d(TAG, "Permissions denied")
             return
         }
