@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
+import com.nosenkomi.emotionclassification.classifier.CnnLstmClassifier
 import com.nosenkomi.emotionclassification.classifier.LSTMClassifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val recorder: AudioRecorder,
-    private val classifier: LSTMClassifier
+    private val classifier: CnnLstmClassifier
 ) : ViewModel() {
 
     private val TAG = this::class.simpleName

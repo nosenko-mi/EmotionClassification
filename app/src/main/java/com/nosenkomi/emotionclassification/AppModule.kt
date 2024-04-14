@@ -1,6 +1,7 @@
 package com.nosenkomi.emotionclassification
 
 import android.app.Application
+import com.nosenkomi.emotionclassification.classifier.CnnLstmClassifier
 import com.nosenkomi.emotionclassification.classifier.LSTMClassifier
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
 import com.nosenkomi.emotionclassification.record.CustomClassifier
@@ -37,13 +38,13 @@ object AppModule{
 
     @Provides
     @Singleton
-    fun provideLSTMClassifier(application: Application): LSTMClassifier {
-        return LSTMClassifier(application)
+    fun provideLSTMClassifier(application: Application): CnnLstmClassifier {
+        return CnnLstmClassifier(application)
     }
 
     @Provides
     @Singleton
-    fun provideMainActivityViewModel(recorder: AudioRecorder, classifier: LSTMClassifier): MainActivityViewModel{
+    fun provideMainActivityViewModel(recorder: AudioRecorder, classifier: CnnLstmClassifier): MainActivityViewModel{
         return MainActivityViewModel(recorder, classifier)
     }
 }
