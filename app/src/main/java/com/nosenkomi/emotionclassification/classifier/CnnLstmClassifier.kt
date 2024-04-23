@@ -33,6 +33,7 @@ class CnnLstmClassifier(
     private lateinit var model: LstmI64x64P35kOae100F068V2
     private lateinit var mfcc: TensorBuffer
     private val interval = 2000L // ms
+    private val smallIntervalMs = 500L
     private var audioRecorder: AudioRecorder = AndroidAudioRecorder(context, intervalSeconds = 2)
     private val featureExtractor = JlibrosaExtractor()
 
@@ -59,8 +60,8 @@ class CnnLstmClassifier(
 //                releaseRecorder()
                 return@flow
             }
+            delay(interval)   // Delay before to spare 1 classification
             while (currentCoroutineContext().isActive) {
-                delay(interval)   // Delay before to spare 1 classification
 
 //                val newValues: FloatArray = readFromRecorder()
                 val newValues: FloatArray = audioRecorder.readData()
@@ -80,6 +81,7 @@ class CnnLstmClassifier(
                 val outputs = model.process(mfcc)
                 val probability = outputs.probabilityAsCategoryList
                 emit(ClassificationResult.Success<List<Category>>(probability))
+                delay(smallIntervalMs)   // Delay before to spare 1 classification
 
             }
         }.flowOn(Dispatchers.IO) // Use a background thread for recording and classification, if necessary
