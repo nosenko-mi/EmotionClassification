@@ -10,14 +10,17 @@ import com.nosenkomi.emotionclassification.record.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.tensorflow.lite.support.label.Category
 import javax.inject.Inject
 
@@ -37,6 +40,11 @@ class MainActivityViewModel @Inject constructor(
     private val _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
 
+    private var timerJob: Job? = null
+    private val _timer = MutableStateFlow(0L)
+    val timer = _timer.asStateFlow()
+
+
     fun startRecording() {
         recorder.start()
     }
@@ -48,6 +56,13 @@ class MainActivityViewModel @Inject constructor(
     fun startClassification() {
         if (isRecording.value) return
         _isRecording.update { true }
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                _timer.value++
+            }
+        }
         classifier.start()
             .onEach { result ->
                 when (result) {
@@ -69,7 +84,8 @@ class MainActivityViewModel @Inject constructor(
 
     fun stopClassification() {
         if (!isRecording.value) return
-
+        _timer.value = 0
+        timerJob?.cancel()
         classifier.stop()
         _isRecording.update { false }
         _categories.update { emptyList() }
@@ -83,5 +99,10 @@ class MainActivityViewModel @Inject constructor(
     }
 
     private fun processAudioInput() {
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        timerJob?.cancel()
     }
 }

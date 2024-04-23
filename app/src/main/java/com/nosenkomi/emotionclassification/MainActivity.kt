@@ -45,12 +45,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.jlibrosa.audio.JLibrosa
 import com.nosenkomi.emotionclassification.classifier.AudioClassificationListener
 import com.nosenkomi.emotionclassification.ui.theme.EmotionClassificationTheme
 import com.nosenkomi.emotionclassification.util.WAVReader
+import com.nosenkomi.emotionclassification.util.formatTime
 import dagger.hilt.android.AndroidEntryPoint
 import org.tensorflow.lite.support.label.Category
 import java.io.File
@@ -166,6 +168,7 @@ class MainActivity : ComponentActivity() {
 //        )
         setContent {
             val context = LocalContext.current
+            val timerValue by viewModel.timer.collectAsState()
             EmotionClassificationTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -210,6 +213,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             Spacer(Modifier.height(32.dp))
+                            TimerWidget(timerValue)
+                            Spacer(Modifier.height(32.dp))
                             Row {
                                 Button(
                                     onClick = {
@@ -242,7 +247,17 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
 }
+
+@Composable
+private fun TimerWidget(
+    timeValue: Long,
+) {
+    Text(text = timeValue.formatTime(), fontSize = 24.sp)
+}
+
 
 @Composable
 fun Waveform(
