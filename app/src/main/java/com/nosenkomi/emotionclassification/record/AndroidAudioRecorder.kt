@@ -12,23 +12,22 @@ import androidx.core.app.ActivityCompat
 class AndroidAudioRecorder(
     private val context: Context,
     private val intervalSeconds: Int = 2,
-): AudioRecorder {
+    private val sampleRate: Int = 44100,
+    private val channelConfig: Int = AudioFormat.CHANNEL_IN_MONO,
+    private val audioFormat: Int = AudioFormat.ENCODING_PCM_FLOAT,
+    private val rawAudioSource: Int = MediaRecorder.AudioSource.UNPROCESSED
+    ): AudioRecorder {
 
-    private val TAG = this::class.simpleName
+    companion object {
+        val TAG = this::class.simpleName
+    }
 
-    private val RECORDER_SAMPLE_RATE = 44100
-    private val RAW_AUDIO_SOURCE = MediaRecorder.AudioSource.UNPROCESSED
-    private val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-    private val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
-    private val BUFFER_SIZE_RECORDING = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT)
+    private val minBufferSize: Int =
+    AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
 
     @Volatile
     private var isRecordingAudio = false
     private var recorder: AudioRecord? = null
-
-    @Volatile
-    var data: ByteArray = ByteArray(BUFFER_SIZE_RECORDING/2)
-
 
     override fun start() {
         createRecorder()
@@ -75,9 +74,9 @@ class AndroidAudioRecorder(
             return
         }
         val bufferSize =
-            (intervalSeconds * 2 * RECORDER_SAMPLE_RATE) // 2 sec * 2 (compensate for mono) * sample rate
-        Log.d(TAG, "buffer size: $bufferSize; min size: $BUFFER_SIZE_RECORDING")
-        recorder = AudioRecord(RAW_AUDIO_SOURCE, RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, bufferSize)
+            (intervalSeconds * 2 * sampleRate) // 2 sec * 2 (compensate for mono) * sample rate
+        Log.d(TAG, "buffer size: $bufferSize; min size: ${this.minBufferSize}")
+        recorder = AudioRecord(rawAudioSource, sampleRate, channelConfig, audioFormat, bufferSize)
     }
 
 }
