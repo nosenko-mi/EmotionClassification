@@ -19,7 +19,7 @@ class AndroidAudioRecorder(
     ): AudioRecorder {
 
     companion object {
-        val TAG = this::class.simpleName
+        const val TAG = "AndroidAudioRecorder"
     }
 
     private val minBufferSize: Int =
