@@ -57,10 +57,10 @@ class AndroidAudioRecorder(
     }
 
     override fun getState(): Int {
-        if (!isRecordingAudio ){
-            return AudioRecord.STATE_UNINITIALIZED
+        return if (!isRecordingAudio ){
+            AudioRecord.STATE_UNINITIALIZED
         } else {
-            return recorder!!.state
+            recorder!!.state
         }
     }
 
