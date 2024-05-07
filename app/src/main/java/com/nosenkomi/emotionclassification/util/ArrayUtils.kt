@@ -82,9 +82,12 @@ fun Array<FloatArray>.minValue(): Float{
 /**
  * Performs min-max scaling on matrix
  *
- * X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+ * @param tMin minimum range value
+ * @param tMax maximum range value
+ * @return
+ * X = ((X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))) * (tMax - tMin) + tMin
  **/
-fun Array<FloatArray>.minMaxScaleRespectColumns(): Array<FloatArray>{
+fun Array<FloatArray>.minMaxScaleRespectColumns(tMin: Int = 0, tMax: Int = 1): Array<FloatArray>{
 
     val numRows = this.size
     val numCols = this[0].size
@@ -100,9 +103,15 @@ fun Array<FloatArray>.minMaxScaleRespectColumns(): Array<FloatArray>{
         colMaxs.add(this.maxValue(index = i, axis = 1))
     }
 
+    var range: Float
     for (i in this.indices){
         for (j in this[i].indices){
-            scaledArray[i][j] = (this[i][j] - colMins[j])/(colMaxs[j] - colMins[j])
+            range = colMaxs[j] - colMins[j]
+            if (range <= 0) {
+                scaledArray[i][j] = tMin.toFloat()
+            } else{
+                scaledArray[i][j] = ((this[i][j] - colMins[j])/(colMaxs[j] - colMins[j])) * (tMax - tMin) + tMin
+            }
         }
     }
     return scaledArray
