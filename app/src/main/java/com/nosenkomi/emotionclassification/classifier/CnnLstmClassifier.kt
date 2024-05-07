@@ -1,16 +1,13 @@
 package com.nosenkomi.emotionclassification.classifier
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.SystemClock
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
-import com.nosenkomi.emotionclassification.ml.LstmI64x64P35kOae100F068V2
+import com.nosenkomi.emotionclassification.ml.CnnGruV8SeqScaleTranspose16khz
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
 import com.nosenkomi.emotionclassification.record.AudioRecorder
 import kotlinx.coroutines.Dispatchers
@@ -19,22 +16,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.isActive
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.lang.reflect.Array
 
 class CnnLstmClassifier(
     private val context: Context,
 ): Classifier {
     private val TAG = this::class.simpleName
-    private lateinit var model: LstmI64x64P35kOae100F068V2
+    private lateinit var model: CnnGruV8SeqScaleTranspose16khz
     private lateinit var mfcc: TensorBuffer
     private val interval = 2000L // ms
     private val smallIntervalMs = 500L
-    private var audioRecorder: AudioRecorder = AndroidAudioRecorder(context, intervalSeconds = 2)
+    private var audioRecorder: AudioRecorder = AndroidAudioRecorder(context, intervalSeconds = 2, sampleRate = 16000)
     private val featureExtractor = JlibrosaExtractor()
 
     init {
@@ -50,7 +45,7 @@ class CnnLstmClassifier(
 
     override fun start(): Flow<ClassificationResult<List<Category>>> {
 //        createRecorder()
-        model = LstmI64x64P35kOae100F068V2.newInstance(context)
+        model = CnnGruV8SeqScaleTranspose16khz.newInstance(context)
         audioRecorder.start()
         return flow {
             Log.d(TAG, "recorder state: ${audioRecorder!!.getState()}")
@@ -73,15 +68,19 @@ class CnnLstmClassifier(
                     return@flow
                 }
 
-                val processedData = featureExtractor.extractMFCCtoBuffer(newValues, 44100)
+                val processedData = featureExtractor.extractMelToBuffer(newValues, 16000, hopLength = 502, scale = true, transpose = true)
                 mfcc.loadBuffer(processedData)
 
                 val inferenceTime = SystemClock.uptimeMillis()
                 Log.i(TAG, "inference time: $inferenceTime")
                 val outputs = model.process(mfcc)
                 val probability = outputs.probabilityAsCategoryList
+                Log.i(TAG, "probabilities: $probability")
+                if (probability.any { category -> category.score.isNaN() }){
+                    Log.i(TAG, "mfcc has NaN: ${mfcc.floatArray.any{it.isNaN()}}")
+                }
                 emit(ClassificationResult.Success<List<Category>>(probability))
-                delay(smallIntervalMs)   // Delay before to spare 1 classification
+                delay(interval)
 
             }
         }.flowOn(Dispatchers.IO) // Use a background thread for recording and classification, if necessary
