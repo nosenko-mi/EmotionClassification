@@ -137,3 +137,19 @@ fun Array<FloatArray>.minMaxScale(): Array<FloatArray>{
     return scaledArray
 
 }
+
+fun Array<FloatArray>.transpose(): Array<FloatArray>{
+
+    val numRows = this.size
+    val numCols = this[0].size
+    val transposedArray: Array<FloatArray> = Array(numCols) { FloatArray(numRows) { 0f } }
+
+    for (i in this.indices){
+        for (j in this[i].indices){
+            transposedArray[j][i] = this[i][j]
+        }
+    }
+
+    return transposedArray
+
+}
