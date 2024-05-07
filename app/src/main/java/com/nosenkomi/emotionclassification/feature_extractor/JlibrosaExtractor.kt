@@ -5,6 +5,8 @@ import com.jlibrosa.audio.JLibrosa
 import com.nosenkomi.emotionclassification.audio_features.AudioFeatures
 import com.nosenkomi.emotionclassification.audio_features.MelSpectrogram
 import com.nosenkomi.emotionclassification.util.maxValue
+import com.nosenkomi.emotionclassification.util.minMaxScaleRespectColumns
+import com.nosenkomi.emotionclassification.util.transpose
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.absoluteValue
@@ -70,13 +72,24 @@ class JlibrosaExtractor : Extractor {
         sr: Int,
         nFFT: Int = 1024,
         nMels: Int = 64,
-        hopLength: Int = 690
+        hopLength: Int = 690,
+        scale: Boolean = false,
+        transpose: Boolean = false
     ): ByteBuffer {
+        Log.d(javaClass.simpleName,"input size: ${yValues.size}")
         val data = jLibrosa.generateMelSpectroGram(yValues, sr, nFFT, nMels, hopLength)
-        val shape = Pair(data.size, data[0].size)
-        println("mel shape: $shape")
+        var dataDb = powerToDB(data, ref = data.maxValue())
 
-        return dataToByteBuffer(data)
+        val shape = Pair(data.size, data[0].size)
+        Log.d(javaClass.simpleName,"mel shape: $shape")
+
+        if (scale) {
+            dataDb = dataDb.minMaxScaleRespectColumns(-1, 1)
+        }
+        if (transpose) {
+            dataDb = dataDb.transpose()
+        }
+        return dataToByteBuffer(dataDb)
     }
 
     /**
@@ -131,7 +144,8 @@ class JlibrosaExtractor : Extractor {
         val data = jLibrosa.generateMelSpectroGram(yValues, sr, nFFT, nMels, hopLength)
         val dataDB = powerToDB(data, ref = data.maxValue())
         val shape = Pair(data.size, data[0].size)
-        println("mel shape: $shape")
+        Log.d(javaClass.simpleName,"mel shape: $shape")
+
         return dataDB
     }
 
@@ -139,9 +153,8 @@ class JlibrosaExtractor : Extractor {
         val floatArray = data.flatMap { it.toList() }.toTypedArray().toFloatArray()
         val byteBuffer =
             ByteBuffer.allocateDirect(floatArray.size * Float.SIZE_BYTES) // Allocate space
-        println(
-            "floatArray.size=${floatArray.size}; byteBuffer.size=${byteBuffer.capacity()}"
-        )
+        Log.d(javaClass.simpleName,"floatArray.size=${floatArray.size}; byteBuffer.size=${byteBuffer.capacity()}")
+
         for (floatValue in floatArray) {
             byteBuffer.putFloat(floatValue)
         }
