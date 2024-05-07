@@ -24,6 +24,7 @@ class AndroidAudioRecorder(
 
     private val minBufferSize: Int =
     AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+    private val recordingSize: Int = (intervalSeconds * sampleRate * Float.SIZE_BYTES)
 
     @Volatile
     private var isRecordingAudio = false
@@ -52,6 +53,7 @@ class AndroidAudioRecorder(
         }
         val newData = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)
         val loadedValues = recorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
+        Log.d(TAG, "readData: expected size=${newData.size}; loaded values=${loadedValues}")
         if (loadedValues < 0) return floatArrayOf()
         return newData
     }
@@ -73,8 +75,7 @@ class AndroidAudioRecorder(
             Log.d(TAG, "Permissions denied")
             return
         }
-        val bufferSize =
-            (intervalSeconds * 2 * sampleRate) // 2 sec * 2 (compensate for mono) * sample rate
+        val bufferSize = (recordingSize)
         Log.d(TAG, "buffer size: $bufferSize; min size: ${this.minBufferSize}")
         recorder = AudioRecord(rawAudioSource, sampleRate, channelConfig, audioFormat, bufferSize)
     }
