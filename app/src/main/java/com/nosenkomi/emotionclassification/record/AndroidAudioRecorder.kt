@@ -8,6 +8,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.nosenkomi.emotionclassification.util.replace
 
 class AndroidAudioRecorder(
     private val context: Context,
@@ -25,6 +26,8 @@ class AndroidAudioRecorder(
     private val minBufferSize: Int =
     AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
     private val recordingSize: Int = (intervalSeconds * sampleRate * Float.SIZE_BYTES)
+    private val queue: ArrayDeque<Float> = ArrayDeque()
+    private lateinit var data: FloatArray
 
     @Volatile
     private var isRecordingAudio = false
@@ -54,8 +57,23 @@ class AndroidAudioRecorder(
         val newData = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)
         val loadedValues = recorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
         Log.d(TAG, "readData: expected size=${newData.size}; loaded values=${loadedValues}")
-        if (loadedValues < 0) return floatArrayOf()
-        return newData
+        if (loadedValues <= 0) return floatArrayOf()
+
+        if (queue.isEmpty()){
+            queue.addAll(newData.toTypedArray())
+            while (queue.size < newData.size){
+                queue.add(0f)
+            }
+        } else{
+            queue.addAll(newData.toTypedArray())
+            while (queue.size > newData.size){
+                queue.removeFirst()
+            }
+        }
+        Log.d(TAG, "readData: queue size=${queue.size}; values=${queue.toList()}")
+
+        return queue.toFloatArray()
+
     }
 
     override fun getState(): Int {
@@ -78,6 +96,8 @@ class AndroidAudioRecorder(
         val bufferSize = (recordingSize)
         Log.d(TAG, "buffer size: $bufferSize; min size: ${this.minBufferSize}")
         recorder = AudioRecord(rawAudioSource, sampleRate, channelConfig, audioFormat, bufferSize)
+        data = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)
+
     }
 
 }
