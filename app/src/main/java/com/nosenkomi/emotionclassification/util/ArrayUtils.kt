@@ -1,5 +1,28 @@
 package com.nosenkomi.emotionclassification.util
 
+
+fun FloatArray.replace(offset: Int, values: FloatArray) {
+    if (offset < 0 || offset >= this.size){
+        return
+    }
+    if (offset + values.size >= this.size){
+
+    }
+
+    var i = offset
+    var j = 0
+    while (j < values.size && i < this.size){
+        this[i] = values[j]
+        i++
+        j++
+    }
+//    var j = 0
+//    for(i in offset .. this.size-1){
+//        this.set(i, values[j])
+//        j++
+//    }
+}
+
 fun Array<FloatArray>.maxValue(): Float{
     if (this.isEmpty()){
         throw RuntimeException("array is empty")
