@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import com.nosenkomi.emotionclassification.ml.CnnGruV8SeqScaleTranspose16khz
+import com.nosenkomi.emotionclassification.ml.CnnGruV8SeqScaleTransposeAug16khz
 import com.nosenkomi.emotionclassification.record.AndroidAudioRecorder
 import com.nosenkomi.emotionclassification.record.AudioRecorder
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +81,7 @@ class CnnLstmClassifier(
                     Log.i(TAG, "mfcc has NaN: ${mfcc.floatArray.any{it.isNaN()}}")
                 }
                 emit(ClassificationResult.Success<List<Category>>(probability))
-                delay(interval)
+                delay(smallIntervalMs)
 
             }
         }.flowOn(Dispatchers.IO) // Use a background thread for recording and classification, if necessary
