@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
-import com.nosenkomi.emotionclassification.classifier.CnnLstmClassifier
+import com.nosenkomi.emotionclassification.classifier.Classifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -22,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val recorder: AudioRecorder,
-    private val classifier: CnnLstmClassifier
+    private val classifier: Classifier
 ) : ViewModel() {
 
     private val TAG = this::class.simpleName
@@ -88,7 +88,7 @@ class MainActivityViewModel @Inject constructor(
         Log.d(TAG, "stopClassification isRecording= ${isRecording.value}")
     }
 
-    private fun filterCategories(){
+    private fun filterCategories() {
         val filtered = _categories.value.maxBy { it.score }
         _categories.update { listOf(filtered) }
     }
