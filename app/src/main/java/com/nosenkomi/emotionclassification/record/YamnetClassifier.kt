@@ -83,9 +83,6 @@ class YamnetClassifier(
 //            recorder = classifier.createAudioRecord()
 //            startAudioClassification()
         } catch (e: IllegalStateException) {
-//            listener.onError(
-//                "Audio Classifier failed to initialize. See error logs for details"
-//            )
 
             Log.e("AudioClassification", "TFLite failed to load with error: " + e.message)
         }
