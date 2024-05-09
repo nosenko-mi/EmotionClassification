@@ -50,6 +50,7 @@ class AndroidAudioRecorder(
         recorder = null
     }
 
+
     override fun readData(): FloatArray {
         if (!isRecordingAudio){
             return floatArrayOf()
@@ -76,12 +77,23 @@ class AndroidAudioRecorder(
 
     }
 
+    override fun getRecorder(): AudioRecord {
+        if (recorder == null) {
+            createRecorder()
+        }
+        return recorder!!
+    }
+
     override fun getState(): Int {
         return if (!isRecordingAudio ){
             AudioRecord.STATE_UNINITIALIZED
         } else {
             recorder!!.state
         }
+    }
+
+    override fun getSampleRate(): Int {
+        return sampleRate
     }
 
     private fun createRecorder(){
