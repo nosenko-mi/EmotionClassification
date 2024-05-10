@@ -11,8 +11,12 @@ class CnnGruModel(
     private val context: Context,
 ) : MLModel<TensorBuffer> {
 
-    private var model = CnnGruV8SeqScaleTranspose16khz.newInstance(context)
-    private var isActive = true
+    private lateinit var model: CnnGruV8SeqScaleTranspose16khz
+    private var isActive = false
+
+    init {
+        create()
+    }
     override fun runInference(input: TensorBuffer): List<Category> {
         if (!isActive) {
             create()
