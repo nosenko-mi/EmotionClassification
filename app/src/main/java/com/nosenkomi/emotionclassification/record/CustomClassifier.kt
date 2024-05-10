@@ -14,21 +14,22 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.audio.TensorAudio
 import org.tensorflow.lite.support.label.Category
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import org.tensorflow.lite.task.audio.classifier.AudioClassifier
 import org.tensorflow.lite.task.core.BaseOptions
 import java.util.concurrent.ScheduledThreadPoolExecutor
 
-class YamnetClassifier(
+class CustomClassifier(
     private val context: Context,
-//    val listener: AudioClassificationListener,
-    var currentModel: String = YAMNET_MODEL,
-    var classificationThreshold: Float = DISPLAY_THRESHOLD,
-    var overlap: Float = DEFAULT_OVERLAP_VALUE,
-    var numOfResults: Int = DEFAULT_NUM_OF_RESULTS,
-    var currentDelegate: Int = 0,
-    var numThreads: Int = 2
+    private var currentModel: String = CUSTOM_MODEL,
+    private var classificationThreshold: Float = DISPLAY_THRESHOLD,
+    private var overlap: Float = DEFAULT_OVERLAP_VALUE,
+    private var numOfResults: Int = DEFAULT_NUM_OF_RESULTS,
+    private var currentDelegate: Int = 0,
+    private var numThreads: Int = 2
 ): Classifier {
 
     private val TAG = this::class.simpleName
@@ -42,24 +43,14 @@ class YamnetClassifier(
 
     private var chunkSize: Int = 3 * RECORDER_SAMPLE_RATE * CHANNEL_CONFIG * 16 / 8
 
-
-    private val classifyRunnable = Runnable {
-        classifyAudio()
-    }
-
     init {
         initClassifier()
     }
 
     fun initClassifier() {
-        // Set general detection options, e.g. number of used threads
         val baseOptionsBuilder = BaseOptions.builder()
             .setNumThreads(numThreads)
 
-        // Use the specified hardware for running the model. Default to CPU.
-        // Possible to also use a GPU delegate, but this requires that the classifier be created
-        // on the same thread that is using the classifier, which is outside of the scope of this
-        // sample's design.
         when (currentDelegate) {
             DELEGATE_CPU -> {
                 // Default
@@ -80,14 +71,12 @@ class YamnetClassifier(
             // Create the classifier and required supporting objects
             classifier = AudioClassifier.createFromFileAndOptions(context, currentModel, options)
             tensorAudio = classifier.createInputTensorAudio()
-//            recorder = classifier.createAudioRecord()
-//            startAudioClassification()
-        } catch (e: IllegalStateException) {
 
+
+
+        } catch (e: IllegalStateException) {
             Log.e("AudioClassification", "TFLite failed to load with error: " + e.message)
         }
-
-
     }
 
     override fun start(): Flow<ClassificationResult<List<Category>>> {
@@ -175,9 +164,7 @@ class YamnetClassifier(
         const val RAW_AUDIO_SOURCE = MediaRecorder.AudioSource.UNPROCESSED
         const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
-        const val YAMNET_MODEL = "yamnet.tflite"
-        const val CUSTOM_MODEL = "model-metadata.tflite"
-        const val SPEECH_COMMAND_MODEL = "speech.tflite"
+        const val CUSTOM_MODEL = "lstm-i64x64-p35k-oAe100-f068-v2.tflite"
     }
 
 }

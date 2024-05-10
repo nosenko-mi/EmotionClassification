@@ -52,20 +52,33 @@ android {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
 
     // DI
     implementation ("com.google.dagger:hilt-android:2.48")
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
+    implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
     kapt ("com.google.dagger:hilt-compiler:2.48")
 
     // ML
     implementation ("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation ("org.tensorflow:tensorflow-lite-metadata:0.4.4")
     implementation ("org.tensorflow:tensorflow-lite-gpu:2.3.0")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
     // Import the Audio Task Library dependency (NNAPI is included)
     implementation("org.tensorflow:tensorflow-lite-task-audio:0.4.4")
     // Import the GPU delegate plugin Library for GPU inference
     implementation("org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.4")
+
+    // TarsosDSP
+    implementation("be.tarsos.dsp:core:2.5")
+    implementation("be.tarsos.dsp:jvm:2.5")
 
     // default
     implementation("androidx.core:core-ktx:1.9.0")
@@ -76,7 +89,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test.ext:truth:1.5.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))

@@ -153,6 +153,22 @@ class YamnetClassifierOrig(
         recorder = null
     }
 
+    override fun readData(): FloatArray {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRecorder(): AudioRecord {
+        TODO("Not yet implemented")
+    }
+
+    override fun getState(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun getSampleRate(): Int {
+        TODO("Not yet implemented")
+    }
+
     private fun processAudioInput(){
         while (isRecordingAudio) {
             val bytesRead = recorder!!.read(data, 0, data.size)

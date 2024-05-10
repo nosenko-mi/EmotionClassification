@@ -8,39 +8,39 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import kotlin.concurrent.thread
+import com.nosenkomi.emotionclassification.util.replace
 
 class AndroidAudioRecorder(
-    private val context: Context
-): AudioRecorder {
+    private val context: Context,
+    private val intervalSeconds: Int = 2,
+    private val sampleRate: Int = 44100,
+    private val channelConfig: Int = AudioFormat.CHANNEL_IN_MONO,
+    private val audioFormat: Int = AudioFormat.ENCODING_PCM_FLOAT,
+    private val rawAudioSource: Int = MediaRecorder.AudioSource.UNPROCESSED
+    ): AudioRecorder {
 
-    private val TAG = this::class.simpleName
+    companion object {
+        const val TAG = "AndroidAudioRecorder"
+    }
 
-    private val RECORDER_SAMPLE_RATE = 44100
-    private val RAW_AUDIO_SOURCE = MediaRecorder.AudioSource.UNPROCESSED
-    private val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-    private val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
-    private val BUFFER_SIZE_RECORDING = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT)
+    private val minBufferSize: Int =
+    AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+    private val recordingSize: Int = (intervalSeconds * sampleRate * Float.SIZE_BYTES)
+    private val queue: ArrayDeque<Float> = ArrayDeque()
+    private lateinit var data: FloatArray
 
     @Volatile
     private var isRecordingAudio = false
     private var recorder: AudioRecord? = null
 
-    @Volatile
-    var data: ByteArray = ByteArray(BUFFER_SIZE_RECORDING/2)
-
-
     override fun start() {
-        isRecordingAudio = true
         createRecorder()
         if (recorder!!.state != AudioRecord.STATE_INITIALIZED) {
             Log.e(TAG, "error initializing AudioRecord")
             return
         }
+        isRecordingAudio = true
         recorder!!.startRecording()
-        val recodingThread = thread {
-            processAudioInput()
-        }
     }
 
     override fun stop() {
@@ -50,14 +50,50 @@ class AndroidAudioRecorder(
         recorder = null
     }
 
-    private fun processAudioInput(){
-        while (isRecordingAudio) {
-            val bytesRead = recorder!!.read(data, 0, data.size)
-            if (bytesRead <= 0) {
-                break
-            }
-            Log.d(TAG, "First byte: ${data.first()}")
+
+    override fun readData(): FloatArray {
+        if (!isRecordingAudio){
+            return floatArrayOf()
         }
+        val newData = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)
+        val loadedValues = recorder!!.read(newData, 0, newData.size, AudioRecord.READ_NON_BLOCKING)
+        Log.d(TAG, "readData: expected size=${newData.size}; loaded values=${loadedValues}")
+        if (loadedValues <= 0) return floatArrayOf()
+
+        if (queue.isEmpty()){
+            queue.addAll(newData.toTypedArray())
+            while (queue.size < newData.size){
+                queue.add(0f)
+            }
+        } else{
+            queue.addAll(newData.toTypedArray())
+            while (queue.size > newData.size){
+                queue.removeFirst()
+            }
+        }
+        Log.d(TAG, "readData: queue size=${queue.size}; values=${queue.toList()}")
+
+        return queue.toFloatArray()
+
+    }
+
+    override fun getRecorder(): AudioRecord {
+        if (recorder == null) {
+            createRecorder()
+        }
+        return recorder!!
+    }
+
+    override fun getState(): Int {
+        return if (!isRecordingAudio ){
+            AudioRecord.STATE_UNINITIALIZED
+        } else {
+            recorder!!.state
+        }
+    }
+
+    override fun getSampleRate(): Int {
+        return sampleRate
     }
 
     private fun createRecorder(){
@@ -66,11 +102,14 @@ class AndroidAudioRecorder(
                 Manifest.permission.RECORD_AUDIO
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling ActivityCompat#requestPermissions
+            Log.d(TAG, "Permissions denied")
             return
         }
-        recorder = AudioRecord(RAW_AUDIO_SOURCE, RECORDER_SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE_RECORDING)
-    }
+        val bufferSize = (recordingSize)
+        Log.d(TAG, "buffer size: $bufferSize; min size: ${this.minBufferSize}")
+        recorder = AudioRecord(rawAudioSource, sampleRate, channelConfig, audioFormat, bufferSize)
+        data = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)
 
+    }
 
 }
