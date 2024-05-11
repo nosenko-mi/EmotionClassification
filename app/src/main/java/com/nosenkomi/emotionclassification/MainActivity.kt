@@ -338,7 +338,7 @@ fun CategoryItem(
     modifier: Modifier = Modifier
 ) {
     Row {
-        Text(text = "$label | $displayName | $score")
+        Text(text = "$displayName | $score")
     }
 }
 
