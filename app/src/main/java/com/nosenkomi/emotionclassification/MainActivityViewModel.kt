@@ -89,8 +89,14 @@ class MainActivityViewModel @Inject constructor(
     }
 
     private fun filterCategories() {
-        val filtered = _categories.value.maxBy { it.score }
-        _categories.update { listOf(filtered) }
+        val filtered = _categories.value
+            .filter { category -> category.score >= 0.5 }
+            .maxByOrNull { category -> category.score }
+        if (filtered == null) {
+            _categories.update { emptyList() }
+        } else{
+            _categories.update { listOf(filtered) }
+        }
     }
 
     private fun processAudioInput() {
