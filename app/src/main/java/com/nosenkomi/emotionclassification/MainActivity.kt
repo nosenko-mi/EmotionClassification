@@ -230,12 +230,12 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                     }) {
-                                    Text(text = "Start")
+                                    Text(text = context.getString(R.string.start_btn))
                                 }
                                 Spacer(Modifier.width(16.dp))
                                 Button(
                                     onClick = { viewModel.stopClassification() }) {
-                                    Text(text = "Stop")
+                                    Text(text = context.getString(R.string.stop_btn))
                                 }
                             }
                             Spacer(Modifier.height(32.dp))
