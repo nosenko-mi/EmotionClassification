@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
 import com.nosenkomi.emotionclassification.classifier.Classifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
+import com.nosenkomi.emotionclassification.util.Emotion
+import com.nosenkomi.emotionclassification.util.toEmotion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -29,7 +31,7 @@ class MainActivityViewModel @Inject constructor(
     private val _isRecording = MutableStateFlow(false)
     val isRecording = _isRecording.asStateFlow()
 
-    private val _categories = MutableStateFlow(emptyList<Category>())
+    private val _categories = MutableStateFlow(emptyList<Emotion>())
     val categories = _categories.asStateFlow()
 
     private val _error = MutableStateFlow<String>("")
@@ -67,7 +69,8 @@ class MainActivityViewModel @Inject constructor(
                     }
 
                     is ClassificationResult.Success -> {
-                        _categories.value = result.data.orEmpty()
+
+                        _categories.value = result.data?.map { it.toEmotion() }.orEmpty()
                         filterCategories()
                         Log.d(TAG, categories.value.toString())
 
@@ -90,10 +93,10 @@ class MainActivityViewModel @Inject constructor(
 
     private fun filterCategories() {
         val filtered = _categories.value
-            .filter { category -> category.score >= 0.5 }
-            .maxByOrNull { category -> category.score }
+            .filter { category -> category.getScore() >= 0.5 }
+            .maxByOrNull { category -> category.getScore() }
         if (filtered == null) {
-            _categories.update { emptyList() }
+            _categories.update { listOf(Emotion.Unidentified(1f))  }
         } else{
             _categories.update { listOf(filtered) }
         }

@@ -192,8 +192,8 @@ class MainActivity : ComponentActivity() {
                                         with(category) {
                                             CategoryItem(
                                                 label = label,
-                                                displayName = displayName,
-                                                score = score,
+                                                displayName = getLocalizedDisplayName(context),
+                                                score = getScore(),
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(16.dp)
