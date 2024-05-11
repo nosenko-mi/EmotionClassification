@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="start_btn">Старт</string>
+    <string name="stop_btn">Стоп</string>
+    <string name="agner_label">Злість</string>
+    <string name="contempt_label">Презирство</string>
+    <string name="neutral_label">Нейтрально</string>
+    <string name="happiness_label">Щастя</string>
+    <string name="sadness_label">Сум</string>
+    <string name="fear_label">Страх</string>
+    <string name="surprise_label">Здивування</string>
+    <string name="silence_label">Тиша</string>
+    <string name="cant_identify_label">Не можу розпізнати</string>
+</resources>
