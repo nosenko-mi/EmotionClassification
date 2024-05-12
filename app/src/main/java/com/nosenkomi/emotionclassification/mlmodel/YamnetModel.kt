@@ -55,6 +55,7 @@ class YamnetModel(
 
     override fun destroy() {
         yamnetClassifier.close()
+        isActive = false
     }
 
 }

@@ -86,6 +86,7 @@ class EmotionClassifier @Inject constructor(
 
     private fun stopAudioClassification() {
         serModel.destroy()
+        yamnetModel.destroy()
         audioRecorder.stop()
     }
 
