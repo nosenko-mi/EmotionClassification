@@ -64,6 +64,7 @@ dependencies {
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(files("..\\libs\\jlibrosa-1.1.8-SNAPSHOT-javadoc.jar"))
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
     kapt ("com.google.dagger:hilt-compiler:2.48")
 
     // ML

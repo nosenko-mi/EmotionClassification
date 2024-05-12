@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.tensorflow.lite.support.label.Category
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,8 +95,8 @@ class MainActivityViewModel @Inject constructor(
             .filter { category -> category.getScore() >= 0.5 }
             .maxByOrNull { category -> category.getScore() }
         if (filtered == null) {
-            _categories.update { listOf(Emotion.Unidentified(1f))  }
-        } else{
+            _categories.update { listOf(Emotion.Unidentified(1f)) }
+        } else {
             _categories.update { listOf(filtered) }
         }
     }
