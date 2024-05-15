@@ -1,7 +1,11 @@
 package com.nosenkomi.emotionclassification
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -27,6 +31,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -40,7 +46,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -111,10 +119,17 @@ class MainActivity : ComponentActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if (permissionDialogVisible) {
-                                SimpleDialog(
-                                    title = getString(R.string.permission_is_required_text),
-                                    text = getString(R.string.audio_recording_permission_dialog),
-                                    onDismiss = { viewModel.updatePermissionDialogVisibility(false) }
+                                AlertDialog(
+                                    dialogTitle = getString(R.string.permission_is_required_text),
+                                    dialogText = getString(R.string.audio_recording_permission_dialog),
+                                    icon = Icons.Default.Info,
+                                    dismissText = stringResource(id = R.string.dismiss_btn),
+                                    confirmText = stringResource(id = R.string.go_to_settings_btn),
+                                    onDismissRequest = { viewModel.updatePermissionDialogVisibility(false) },
+                                    onConfirmation = {
+                                        openAppSettings(context)
+                                        viewModel.updatePermissionDialogVisibility(false)
+                                    },
                                 )
                             }
                             if (categories.value.isNotEmpty()) {
@@ -182,19 +197,12 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@Composable
-fun SimpleDialog(
-    title: String,
-    text: String,
-    onDismiss: () -> Unit
-) {
-    SimpleInfoDialog(
-        onConfirmation = {
-            onDismiss()
-        },
-        dialogTitle = title,
-        dialogText = text,
+fun openAppSettings(context: Context) {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
     )
+    context.startActivity(intent)
 }
 
 @Composable
