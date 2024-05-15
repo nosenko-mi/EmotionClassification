@@ -13,12 +13,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun AlertDialogExample(
+fun AlertDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
     dialogTitle: String,
     dialogText: String,
     icon: ImageVector? = null,
+    dismissText: String = stringResource(id = R.string.dismiss_btn),
+    confirmText: String = stringResource(id = R.string.confirm_btn),
 ) {
     AlertDialog(
         icon = {
@@ -39,7 +41,7 @@ fun AlertDialogExample(
                     onConfirmation()
                 }
             ) {
-                Text(stringResource(R.string.confirm_btn))
+                Text(confirmText)
             }
         },
         dismissButton = {
@@ -48,7 +50,7 @@ fun AlertDialogExample(
                     onDismissRequest()
                 }
             ) {
-                Text(stringResource(R.string.dismiss_btn))
+                Text(dismissText)
             }
         }
     )
