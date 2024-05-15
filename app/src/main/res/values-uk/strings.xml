@@ -12,7 +12,8 @@
     <string name="silence_label">Тиша</string>
     <string name="cant_identify_label">Не можу розпізнати</string>
     <string name="confirm_btn">Гаразд</string>
-    <string name="dismiss_btn">Відхилити</string>
+    <string name="dismiss_btn">Закрити</string>
     <string name="audio_recording_permission_dialog">Без дозволу на запис аудіо додаток не може виконувати свої функції. Подумайте про надання цього дозволу.</string>
     <string name="permission_is_required_text">Необхіден дозвіл</string>
+    <string name="go_to_settings_btn">До налаштувань</string>
 </resources>
