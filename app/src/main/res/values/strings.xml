@@ -11,4 +11,8 @@
     <string name="surprise_label">Surprise</string>
     <string name="silence_label">Silence</string>
     <string name="cant_identify_label">Difficult to identify</string>
+    <string name="confirm_btn">Confirm</string>
+    <string name="dismiss_btn">Dismiss</string>
+    <string name="audio_recording_permission_dialog">Without permission to record audio, the application cannot perform its functions. Please consider granting this permission</string>
+    <string name="permission_is_required_text">Permission is required</string>
 </resources>
