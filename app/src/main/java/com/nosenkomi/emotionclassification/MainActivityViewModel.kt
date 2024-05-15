@@ -36,6 +36,9 @@ class MainActivityViewModel @Inject constructor(
     private val _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
 
+    private val _permissionDialogVisible = MutableStateFlow(false)
+    val permissionDialogVisible = _permissionDialogVisible.asStateFlow()
+
     private var timerJob: Job? = null
     private val _timer = MutableStateFlow(0L)
     val timer = _timer.asStateFlow()
@@ -101,7 +104,8 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun processAudioInput() {
+    fun updatePermissionDialogVisibility(visible: Boolean){
+        _permissionDialogVisible.update { visible }
     }
 
     override fun onCleared() {
