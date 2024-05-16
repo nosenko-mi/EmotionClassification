@@ -84,9 +84,10 @@ class MainActivity : ComponentActivity() {
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
                 if (isGranted) {
-                    return@rememberLauncherForActivityResult
+                    viewModel.startClassification()
+                } else{
+                    viewModel.updatePermissionDialogVisibility(true)
                 }
-                viewModel.updatePermissionDialogVisibility(true)
             }
             EmotionClassificationTheme {
 
