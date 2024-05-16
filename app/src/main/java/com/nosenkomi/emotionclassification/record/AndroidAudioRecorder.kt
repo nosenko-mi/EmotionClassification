@@ -52,7 +52,7 @@ class AndroidAudioRecorder(
 
 
     override fun readData(): FloatArray {
-        if (!isRecordingAudio){
+        if (!isRecordingAudio || recorder == null){
             return floatArrayOf()
         }
         val newData = FloatArray(recorder!!.channelCount * recorder!!.bufferSizeInFrames)

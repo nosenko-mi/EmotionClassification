@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.nosenkomi.emotionclassification.classifier.ClassificationResult
 import com.nosenkomi.emotionclassification.classifier.Classifier
 import com.nosenkomi.emotionclassification.record.AudioRecorder
+import com.nosenkomi.emotionclassification.util.Emotion
+import com.nosenkomi.emotionclassification.util.toEmotion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -16,7 +18,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.tensorflow.lite.support.label.Category
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,11 +30,14 @@ class MainActivityViewModel @Inject constructor(
     private val _isRecording = MutableStateFlow(false)
     val isRecording = _isRecording.asStateFlow()
 
-    private val _categories = MutableStateFlow(emptyList<Category>())
+    private val _categories = MutableStateFlow(emptyList<Emotion>())
     val categories = _categories.asStateFlow()
 
     private val _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
+
+    private val _permissionDialogVisible = MutableStateFlow(false)
+    val permissionDialogVisible = _permissionDialogVisible.asStateFlow()
 
     private var timerJob: Job? = null
     private val _timer = MutableStateFlow(0L)
@@ -67,7 +71,8 @@ class MainActivityViewModel @Inject constructor(
                     }
 
                     is ClassificationResult.Success -> {
-                        _categories.value = result.data.orEmpty()
+
+                        _categories.value = result.data?.map { it.toEmotion() }.orEmpty()
                         filterCategories()
                         Log.d(TAG, categories.value.toString())
 
@@ -89,11 +94,18 @@ class MainActivityViewModel @Inject constructor(
     }
 
     private fun filterCategories() {
-        val filtered = _categories.value.maxBy { it.score }
-        _categories.update { listOf(filtered) }
+        val filtered = _categories.value
+            .filter { category -> category.getScore() >= 0.5 }
+            .maxByOrNull { category -> category.getScore() }
+        if (filtered == null) {
+            _categories.update { listOf(Emotion.Unidentified(1f)) }
+        } else {
+            _categories.update { listOf(filtered) }
+        }
     }
 
-    private fun processAudioInput() {
+    fun updatePermissionDialogVisibility(visible: Boolean){
+        _permissionDialogVisible.update { visible }
     }
 
     override fun onCleared() {

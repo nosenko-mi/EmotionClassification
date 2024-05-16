@@ -1,3 +1,19 @@
 <resources>
-    <string name="app_name">EmotionClassification</string>
+    <string name="app_name" translatable="false">SERA</string>
+    <string name="start_btn">Start</string>
+    <string name="stop_btn">Stop</string>
+    <string name="agner_label">Anger</string>
+    <string name="contempt_label">Contempt</string>
+    <string name="neutral_label">Neutral</string>
+    <string name="happiness_label">Happiness</string>
+    <string name="sadness_label">Sadness</string>
+    <string name="fear_label">Fear</string>
+    <string name="surprise_label">Surprise</string>
+    <string name="silence_label">Silence</string>
+    <string name="cant_identify_label">Difficult to identify</string>
+    <string name="confirm_btn">Confirm</string>
+    <string name="dismiss_btn">Dismiss</string>
+    <string name="audio_recording_permission_dialog">Without permission to record audio, the application cannot perform its functions. Please consider granting this permission</string>
+    <string name="permission_is_required_text">Permission is required</string>
+    <string name="go_to_settings_btn">To settings</string>
 </resources>

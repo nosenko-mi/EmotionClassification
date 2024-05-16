@@ -25,7 +25,7 @@ class EmotionClassifier @Inject constructor(
     private val audioRecorder: AudioRecorder,
 ) : Classifier {
     private val TAG = this::class.simpleName
-    private var mfcc: TensorBuffer = serModel.getInput()
+    private var mel: TensorBuffer = serModel.getInput()
     private var tensorAudio: TensorAudio = yamnetModel.getInput()
     private val warmUpIntervalMs: Long = 2000
     private val classificationIntervalMs: Long = 500
@@ -67,15 +67,15 @@ class EmotionClassifier @Inject constructor(
                     scale = true,
                     transpose = true
                 )
-                mfcc.loadBuffer(processedData)
+                mel.loadBuffer(processedData)
 
                 val inferenceTime = SystemClock.uptimeMillis()
                 Log.i(TAG, "inference time: $inferenceTime")
 
-                val probabilities = serModel.runInference(mfcc)
+                val probabilities = serModel.runInference(mel)
                 Log.i(TAG, "probabilities: $probabilities.")
                 if (probabilities.any { category -> category.score.isNaN() }) {
-                    Log.i(TAG, "mfcc has NaN: ${mfcc.floatArray.any { it.isNaN() }}")
+                    Log.i(TAG, "mfcc has NaN: ${mel.floatArray.any { it.isNaN() }}")
                 }
                 emit(ClassificationResult.Success<List<Category>>(probabilities))
                 delay(classificationIntervalMs)
@@ -86,6 +86,7 @@ class EmotionClassifier @Inject constructor(
 
     private fun stopAudioClassification() {
         serModel.destroy()
+        yamnetModel.destroy()
         audioRecorder.stop()
     }
 
