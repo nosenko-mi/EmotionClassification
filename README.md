@@ -1,1 +1,27 @@
-https://github.com/nosenko-mi/ser_diploma - ml repository
+# SERA
+
+SERA (*speech emotion recognition app*) - це друга частина  [цієї роботи](https://github.com/nosenko-mi/ser_diploma).
+
+У цьому репозиторії розглядається інтеграція tflite моделі у мобільний застосунок.
+
+Вхідними даними є людське мовлення. Записані аудіо дані використовуються для генерування ознак, а саме мел-спектрограм. Ці ознаки передаються у класифікатор. Результатом класифікації є одна з емоції.
+
+## Вимоги до середи розробки
+
+- Мінімальна версія Android Studio - Giraffe 2022.3.1
+- Наявність SDK 26 та SDK 34
+- [JLibrosa](https://github.com/Subtitle-Synchronizer/jlibrosa/tree/master/binaries) (*необхідно додати локально*)
+
+## Вимоги до пристрою
+
+- Можливість запису аудіо з частотою дискретизації 16кГц
+- Версія Android 8.0
+- Наданий дозвіл на запис аудіо
+
+## Загальні відомості
+
+- Keras/TensorFlow: модель конвертована у .tflite та інтегрована за допомогою відповідних бібліотек (*org.tensorflow:tensorflow-lite-****)
+- Виокремлення ознак з аудіо: JLibrosa
+- Запис аудіо: AudioRecord
+- Інтерфейс користувача: Jetpack Compose
+- Ін'єкція залежностей: Dagger Hilt
