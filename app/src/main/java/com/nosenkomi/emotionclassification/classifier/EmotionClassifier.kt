@@ -3,6 +3,8 @@ package com.nosenkomi.emotionclassification.classifier
 import android.media.AudioRecord
 import android.os.SystemClock
 import android.util.Log
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import com.nosenkomi.emotionclassification.mlmodel.MLModel
 import com.nosenkomi.emotionclassification.record.AudioRecorder
@@ -17,6 +19,7 @@ import org.tensorflow.lite.support.audio.TensorAudio
 import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import javax.inject.Inject
+import kotlin.system.measureTimeMillis
 
 
 class EmotionClassifier @Inject constructor(
@@ -70,9 +73,9 @@ class EmotionClassifier @Inject constructor(
                 mel.loadBuffer(processedData)
 
                 val inferenceTime = SystemClock.uptimeMillis()
-                Log.i(TAG, "inference time: $inferenceTime")
-
                 val probabilities = serModel.runInference(mel)
+                val elapsedTime = SystemClock.uptimeMillis() - inferenceTime
+                Log.i(TAG, "inference time ms: $elapsedTime")
                 Log.i(TAG, "probabilities: $probabilities.")
                 if (probabilities.any { category -> category.score.isNaN() }) {
                     Log.i(TAG, "mfcc has NaN: ${mel.floatArray.any { it.isNaN() }}")
