@@ -212,7 +212,7 @@ fun openAppSettings(context: Context) {
 private fun TimerWidget(
     timeValue: Long,
 ) {
-    Text(text = timeValue.formatTime(), fontSize = 24.sp)
+    Text(text = timeValue.formatTimeShortStyle(), fontSize = 20.sp)
 }
 
 
