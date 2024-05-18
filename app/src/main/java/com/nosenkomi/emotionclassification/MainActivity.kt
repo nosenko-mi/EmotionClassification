@@ -184,10 +184,11 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             Spacer(Modifier.height(32.dp))
-                            Waveform(
-                                isRecording = isRecording,
-                                activeColor = MaterialTheme.emotionColor.default
-                            )
+//                            Waveform(
+//                                isRecording = isRecording,
+//                                activeColor = MaterialTheme.colorScheme.primary,
+//                                inactiveColor = MaterialTheme.colorScheme.secondary
+//                            )
                         }
 
                     }
