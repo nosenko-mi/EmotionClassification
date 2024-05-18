@@ -60,8 +60,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.nosenkomi.emotionclassification.ui.theme.EmotionClassificationTheme
-import com.nosenkomi.emotionclassification.ui.theme.emotionColor
-import com.nosenkomi.emotionclassification.util.formatTime
+import com.nosenkomi.emotionclassification.util.formatTimeShortStyle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.random.Random
 
