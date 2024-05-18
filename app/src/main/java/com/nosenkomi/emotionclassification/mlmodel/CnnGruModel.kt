@@ -1,6 +1,7 @@
 package com.nosenkomi.emotionclassification.mlmodel
 
 import android.content.Context
+import com.nosenkomi.emotionclassification.ml.CnnGruV8SeqScaleTranspose16khz
 import com.nosenkomi.emotionclassification.ml.CnnGruV9SeqScaleTranspose16khz
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.label.Category
@@ -11,7 +12,7 @@ class CnnGruModel(
     private val context: Context,
 ) : MLModel<TensorBuffer> {
 
-    private lateinit var model: CnnGruV9SeqScaleTranspose16khz
+    private lateinit var model: CnnGruV8SeqScaleTranspose16khz
     private var isActive = false
 
     init {
@@ -32,7 +33,7 @@ class CnnGruModel(
         if (isActive) {
             return
         }
-        model = CnnGruV9SeqScaleTranspose16khz.newInstance(context)
+        model = CnnGruV8SeqScaleTranspose16khz.newInstance(context)
         isActive = true
     }
 
