@@ -141,12 +141,13 @@ class MainActivity : ComponentActivity() {
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(16.dp)
+                                                    .height(76.dp)
                                             )
                                         }
                                     }
                                 }
                             } else {
-                                Spacer(Modifier.height(32.dp))
+                                Spacer(Modifier.height(108.dp))
                             }
                             if (error.value.isNotBlank()) {
                                 Text(
