@@ -223,6 +223,7 @@ fun Waveform(
     maxBars: Int = 20,
     isRecording: State<Boolean> = mutableStateOf(true),
     activeColor: Color = Color.Black,
+    inactiveColor: Color = Color.Gray
 ) {
 
     val infiniteAnimation = rememberInfiniteTransition(label = "barsInfiniteAnimation")
@@ -278,7 +279,7 @@ fun Waveform(
             }
             val barHeight = MathUtils.lerp(barMinHeight, barMaxHeight, barHeightPercent)
             drawLine(
-                color = activeColor,
+                color = if (isRecording.value) activeColor else inactiveColor,
                 start = Offset(startOffset, canvasCenterY - barHeight / 2),
                 end = Offset(startOffset, canvasCenterY + barHeight / 2),
                 strokeWidth = barWidth,
