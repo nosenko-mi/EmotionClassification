@@ -45,15 +45,13 @@ class EmotionClassifier @Inject constructor(
                 return@flow
             }
             delay(warmUpIntervalMs)
-            while (currentCoroutineContext().isActive) {
-
+            while (currentCoroutineContext().isActive) try {
                 val newValues: FloatArray = audioRecorder.readData()
                 if (newValues.isEmpty()) {
                     emit(ClassificationResult.Error<List<Category>>("could not read from recorder"))
                     audioRecorder.stop()
                     return@flow
                 }
-
                 tensorAudio.load(audioRecorder.getRecorder())
                 val yamnetOutput = yamnetModel.runInference(tensorAudio)
                 Log.i(TAG, "yamnet output: $yamnetOutput")
@@ -83,6 +81,8 @@ class EmotionClassifier @Inject constructor(
                 emit(ClassificationResult.Success<List<Category>>(probabilities))
                 delay(classificationIntervalMs)
 
+            } catch (e: Exception) {
+                emit(ClassificationResult.Error<List<Category>>("Exception: ${e.printStackTrace()}"))
             }
         }.flowOn(Dispatchers.IO)
     }
