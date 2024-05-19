@@ -32,7 +32,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,8 +96,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
             EmotionClassificationTheme {
-
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -162,33 +163,28 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(32.dp))
                             TimerWidget(timerValue)
                             Spacer(Modifier.height(32.dp))
-                            Row {
-                                Button(
-                                    onClick = {
-                                        when (recordPermissionState.status) {
-                                            PermissionStatus.Granted -> {
-                                                viewModel.startClassification()
-                                            }
-
-                                            else -> {
-                                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                                            }
+                            AnimatedIconButton(
+                                modifier = Modifier.width(150.dp),
+                                textStart = context.getString(R.string.start_btn),
+                                textEnd = context.getString(R.string.stop_btn),
+                                iconStart = Icons.Default.PlayArrow,
+                                iconEnd = Icons.Default.Stop,
+                                isPressed = isRecording,
+                                onClick = {
+                                    if (isRecording.value){
+                                        viewModel.stopClassification()
+                                        return@AnimatedIconButton
+                                    }
+                                    when (recordPermissionState.status) {
+                                        PermissionStatus.Granted -> {
+                                            viewModel.startClassification()
                                         }
-                                    }) {
-                                    Text(text = context.getString(R.string.start_btn))
+                                        else -> {
+                                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                        }
+                                    }
                                 }
-                                Spacer(Modifier.width(16.dp))
-                                Button(
-                                    onClick = { viewModel.stopClassification() }) {
-                                    Text(text = context.getString(R.string.stop_btn))
-                                }
-                            }
-                            Spacer(Modifier.height(32.dp))
-//                            Waveform(
-//                                isRecording = isRecording,
-//                                activeColor = MaterialTheme.colorScheme.primary,
-//                                inactiveColor = MaterialTheme.colorScheme.secondary
-//                            )
+                            )
                         }
 
                     }
