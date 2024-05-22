@@ -3,6 +3,8 @@ package com.nosenkomi.emotionclassification.classifier
 import android.media.AudioRecord
 import android.os.SystemClock
 import android.util.Log
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import com.nosenkomi.emotionclassification.feature_extractor.JlibrosaExtractor
 import com.nosenkomi.emotionclassification.mlmodel.MLModel
 import com.nosenkomi.emotionclassification.record.AudioRecorder
@@ -17,6 +19,7 @@ import org.tensorflow.lite.support.audio.TensorAudio
 import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import javax.inject.Inject
+import kotlin.system.measureTimeMillis
 
 
 class EmotionClassifier @Inject constructor(
@@ -42,15 +45,13 @@ class EmotionClassifier @Inject constructor(
                 return@flow
             }
             delay(warmUpIntervalMs)
-            while (currentCoroutineContext().isActive) {
-
+            while (currentCoroutineContext().isActive) try {
                 val newValues: FloatArray = audioRecorder.readData()
                 if (newValues.isEmpty()) {
                     emit(ClassificationResult.Error<List<Category>>("could not read from recorder"))
                     audioRecorder.stop()
                     return@flow
                 }
-
                 tensorAudio.load(audioRecorder.getRecorder())
                 val yamnetOutput = yamnetModel.runInference(tensorAudio)
                 Log.i(TAG, "yamnet output: $yamnetOutput")
@@ -70,9 +71,9 @@ class EmotionClassifier @Inject constructor(
                 mel.loadBuffer(processedData)
 
                 val inferenceTime = SystemClock.uptimeMillis()
-                Log.i(TAG, "inference time: $inferenceTime")
-
                 val probabilities = serModel.runInference(mel)
+                val elapsedTime = SystemClock.uptimeMillis() - inferenceTime
+                Log.i(TAG, "inference time ms: $elapsedTime")
                 Log.i(TAG, "probabilities: $probabilities.")
                 if (probabilities.any { category -> category.score.isNaN() }) {
                     Log.i(TAG, "mfcc has NaN: ${mel.floatArray.any { it.isNaN() }}")
@@ -80,6 +81,8 @@ class EmotionClassifier @Inject constructor(
                 emit(ClassificationResult.Success<List<Category>>(probabilities))
                 delay(classificationIntervalMs)
 
+            } catch (e: Exception) {
+                emit(ClassificationResult.Error<List<Category>>("Exception: ${e.printStackTrace()}"))
             }
         }.flowOn(Dispatchers.IO)
     }
